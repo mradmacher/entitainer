@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'optiomist'
+
 module Entitainer
   def self.included(base)
     base.extend(ClassMethods)
@@ -11,23 +13,26 @@ module Entitainer
     end
 
     def available_belongs_tos
-      @available_belongs_tos || []
+      @available_belongs_tos ||= []
     end
 
     def available_has_manys
-      @available_has_manys || []
+      @available_has_manys ||= []
     end
 
     def schema
+      @available_attributes = []
+
       yield
 
       define_method(:initialize) do |**args, &block|
         assign_values(args)
         assign_belongs_to(args)
         assign_has_many
+
         block&.call(self)
-        defined_attributes
-        freeze
+
+        freeze_it
       end
 
       define_method(:==) do |other|
@@ -36,12 +41,9 @@ module Entitainer
     end
 
     def attributes(*list)
-      @available_attributes = []
-      list.each do |attr|
+      (list.include?(:id) ? list : [:id] + list).each do |attr|
         @available_attributes << attr
-        define_method(attr) do
-          instance_variable_get("@#{attr}")
-        end
+        define_accessor_for(attr)
       end
     end
 
@@ -49,12 +51,17 @@ module Entitainer
       @available_belongs_tos = []
       list.each do |attr|
         @available_belongs_tos << attr
-        define_method(attr) do
-          instance_variable_get("@#{attr}")
+        define_accessor_for(attr)
+
+        relation_id_attr = "#{attr}_id".to_sym
+        unless @available_attributes.include?(relation_id_attr)
+          @available_attributes << relation_id_attr
+          define_accessor_for(relation_id_attr)
         end
+
         define_method("#{attr}=") do |obj|
-          instance_variable_set("@#{attr}_id", obj&.id)
-          instance_variable_set("@#{attr}", obj)
+          instance_variable_set("@#{attr}_id", Optiomist.some(obj&.id))
+          instance_variable_set("@#{attr}", Optiomist.some(obj))
         end
       end
     end
@@ -67,28 +74,48 @@ module Entitainer
         define_method(attr) do
           instance_variable_get("@#{attr}")
         end
-        # define_method("add_#{attr}") do |obj|
-        #  instance_variable_get("@#{attr}") << obj
-        # end
       end
     end
     # rubocop:enable Naming/PredicateName
+
+    private
+
+    def define_accessor_for(attr)
+      define_method(attr) do
+        option = instance_variable_get("@#{attr}")
+        option.value unless option.none?
+      end
+    end
+
   end
 
   def defined_attributes
+    self.class.available_attributes.select do |attr|
+      instance_variable_get("@#{attr}").some?
+    end
+  end
+
+  def defined_attributes_with_values
     {}.tap do |h|
       self.class.available_attributes.each do |attr|
-        value = instance_variable_get("@#{attr}")
-        h[attr.to_sym] = value unless value.is_a?(Optiomist::None)
+        option = instance_variable_get("@#{attr}")
+        h[attr.to_sym] = option.value unless option.none?
       end
     end
   end
 
   private
 
+  def freeze_it
+    freeze
+    self.class.available_has_manys.each do |attr|
+      instance_variable_get("@#{attr}").freeze
+    end
+  end
+
   def assign_values(args)
     self.class.available_attributes.each do |attr|
-      instance_variable_set("@#{attr}", args.key?(attr) ? args[attr] : Optiomist.none)
+      instance_variable_set("@#{attr}", args.key?(attr) ? Optiomist.some(args[attr]) : Optiomist.none)
     end
   end
 
@@ -98,6 +125,7 @@ module Entitainer
         send("#{attr}=", args[attr])
       else
         instance_variable_set("@#{attr}", Optiomist.none)
+        instance_variable_set("@#{attr}_id", Optiomist.none)
       end
     end
   end
@@ -108,6 +136,7 @@ module Entitainer
     end
   end
 
+  # TODO: think if it should be here at all
   def cmp_with(other)
     instance_of?(other.class) && (
       (!id.nil? && !other.id.nil? && id == other.id) ||

@@ -4,6 +4,13 @@ source 'https://rubygems.org'
 
 gemspec
 
+group :test do
+  gem 'minitest'
+end
+
 group :development do
-  gem 'rubocop', '~> 1.56.2'
+  gem 'rake'
+  gem 'rubocop'
+  gem 'rubocop-minitest'
+  gem 'rubocop-rake'
 end
