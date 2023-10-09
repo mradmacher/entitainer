@@ -24,7 +24,7 @@ module Entitainer
     # <tt>id</tt> attribute, and <tt>_id</tt> sufixed attribute for each
     # <tt>belongs_to</tt> relation.
     def available_attributes
-      @available_attributes || []
+      @available_attributes ||= []
     end
 
     def available_belongs_tos
@@ -39,6 +39,9 @@ module Entitainer
       @available_attributes = []
 
       yield
+
+      add_id_attribute
+      define_methods
 
       define_method(:initialize) do |**args, &block|
         assign_values(args)
@@ -57,27 +60,17 @@ module Entitainer
 
     # Used in _schema_ block to define attributes available for the entity.
     def attributes(*list)
-      (list.include?(:id) ? list : [:id] + list).each do |attr|
-        @available_attributes << attr
-        define_accessor_for(attr)
-      end
+      list.each { |attr| @available_attributes << attr }
     end
 
     def belongs_to(*list)
       @available_belongs_tos = []
       list.each do |attr|
         @available_belongs_tos << attr
-        define_accessor_for(attr)
 
         relation_id_attr = "#{attr}_id".to_sym
         unless @available_attributes.include?(relation_id_attr)
           @available_attributes << relation_id_attr
-          define_accessor_for(relation_id_attr)
-        end
-
-        define_method("#{attr}=") do |obj|
-          instance_variable_set("@#{attr}_id", Optiomist.some(obj&.id))
-          instance_variable_set("@#{attr}", Optiomist.some(obj))
         end
       end
     end
@@ -85,16 +78,36 @@ module Entitainer
     # rubocop:disable Naming/PredicateName
     def has_many(*list)
       @available_has_manys = []
-      list.each do |attr|
-        @available_has_manys << attr
+      list.each { |attr| @available_has_manys << attr }
+    end
+    # rubocop:enable Naming/PredicateName
+
+  private
+
+    def add_id_attribute
+      @available_attributes.prepend(:id) unless @available_attributes.include?(:id)
+    end
+
+    def define_methods
+      available_attributes.each do |attr|
+        define_accessor_for(attr)
+      end
+
+      available_belongs_tos.each do |attr|
+        define_accessor_for(attr)
+
+        define_method("#{attr}=") do |obj|
+          instance_variable_set("@#{attr}_id", Optiomist.some(obj&.id))
+          instance_variable_set("@#{attr}", Optiomist.some(obj))
+        end
+      end
+
+      available_has_manys.each do |attr|
         define_method(attr) do
           instance_variable_get("@#{attr}")
         end
       end
     end
-    # rubocop:enable Naming/PredicateName
-
-    private
 
     def define_accessor_for(attr)
       define_method(attr) do
@@ -102,7 +115,6 @@ module Entitainer
         option.value unless option.none?
       end
     end
-
   end
 
   # List of attributes with an assigned value.
@@ -155,7 +167,8 @@ module Entitainer
     end
   end
 
-  # TODO: think if it should be here at all
+  # They are considered equal if their ids are equal.
+  # If both ids are nil, their defined attributes are compared for equality.
   def cmp_with(other)
     instance_of?(other.class) && (
       (!id.nil? && !other.id.nil? && id == other.id) ||
