@@ -2,24 +2,24 @@
 
 require 'test_helper'
 
-class Journalist
-  include Entitainer
-
-  schema do
-    attributes :name
-    has_many :articles
-  end
-end
-
-class Article
-  include Entitainer
-
-  schema do
-    attributes :title
-  end
-end
-
 class TestHasMany < Minitest::Test
+  class Journalist
+    include Entitainer
+
+    schema do
+      attributes :name
+      has_many :articles
+    end
+  end
+
+  class Article
+    include Entitainer
+
+    schema do
+      attributes :title
+    end
+  end
+
   def test_relation_can_be_added_in_constructor_block
     journalist = Journalist.new(name: 'Thruth Teller') do |j|
       j.articles << Article.new(title: 'Good Things 1')

@@ -2,24 +2,24 @@
 
 require 'test_helper'
 
-class Artist
-  include Entitainer
-
-  schema do
-    attributes :name
-  end
-end
-
-class Album
-  include Entitainer
-
-  schema do
-    attributes :title
-    belongs_to :artist
-  end
-end
-
 class TestBelongsTo < Minitest::Test
+  class Artist
+    include Entitainer
+
+    schema do
+      attributes :name
+    end
+  end
+
+  class Album
+    include Entitainer
+
+    schema do
+      attributes :title
+      belongs_to :artist
+    end
+  end
+
   def test_relation_can_be_added_in_constructor
     artist = Artist.new(id: 1, name: 'The Big Star')
     album = Album.new(title: 'Only Gratest Hits', artist: artist)

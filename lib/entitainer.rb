@@ -2,12 +2,27 @@
 
 require 'optiomist'
 
+# Turns your class into a database entity.
+# Define attributes and relation in a _schema_ block
+#   schema do
+#     attributes :attr1, :attr2, :attr3
+#     belongs_to :parent1, :parent2
+#     has_many :items
+#   end
+#
+# An _id_ attribute is always added automatically to the list.
+#
+# Also for <tt>belongs_to</tt> relation an attribute with the same name as
+# the relation and <tt>_id</tt> suffix is added to the attribute list.
 module Entitainer
   def self.included(base)
     base.extend(ClassMethods)
   end
 
   module ClassMethods
+    # A collection of all available attributes defined in a schema block,
+    # <tt>id</tt> attribute, and <tt>_id</tt> sufixed attribute for each
+    # <tt>belongs_to</tt> relation.
     def available_attributes
       @available_attributes || []
     end
@@ -40,6 +55,7 @@ module Entitainer
       end
     end
 
+    # Used in _schema_ block to define attributes available for the entity.
     def attributes(*list)
       (list.include?(:id) ? list : [:id] + list).each do |attr|
         @available_attributes << attr
@@ -89,12 +105,15 @@ module Entitainer
 
   end
 
+  # List of attributes with an assigned value.
   def defined_attributes
     self.class.available_attributes.select do |attr|
       instance_variable_get("@#{attr}").some?
     end
   end
 
+  # A hash where keys are attribute symbols and values are their values.
+  # Only defined attributes are included.
   def defined_attributes_with_values
     {}.tap do |h|
       self.class.available_attributes.each do |attr|

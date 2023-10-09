@@ -2,18 +2,18 @@
 
 require 'test_helper'
 
-class User
-  include Entitainer
-
-  schema do
-    attributes :first_name,
-               :last_name,
-               :email
-
-  end
-end
-
 class TestAttributes < Minitest::Test
+  class User
+    include Entitainer
+
+    schema do
+      attributes :first_name,
+                 :last_name,
+                 :email
+
+    end
+  end
+
   def test_id_is_added_by_default_to_available_attributes
     assert User.available_attributes.include?(:id)
   end
