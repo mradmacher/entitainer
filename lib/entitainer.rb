@@ -171,7 +171,7 @@ module Entitainer
   def cmp_with(other)
     instance_of?(other.class) && (
       (!id.nil? && !other.id.nil? && id == other.id) ||
-      defined_attributes == other.defined_attributes
+      defined_attributes_with_values == other.defined_attributes_with_values
     )
   end
 end
