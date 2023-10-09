@@ -3,7 +3,7 @@
 require 'test_helper'
 
 # Tests for README examples.
-class TestUsageExample < Minitest::Test
+class TestExamples < Minitest::Test
   class Artist
     include Entitainer
 
@@ -61,7 +61,7 @@ class TestUsageExample < Minitest::Test
 
     want = <<~OUTPUT
       [:name]
-      {:name=>\"Czarny motyl\"}
+      {:name=>"Czarny motyl"}
     OUTPUT
     assert_predicate err, :empty?
     assert_equal want, got
@@ -89,9 +89,9 @@ class TestUsageExample < Minitest::Test
 
   def test_setting_has_many
     got, err = capture_io do
-      artist = Artist.new(name: 'Czarny motyl') do |artist|
-        artist.albums << Album.new(title: 'Maszyna do robienia dymu')
-        artist.albums << Album.new(title: 'Maszyna do suszenia łez')
+      artist = Artist.new(name: 'Czarny motyl') do |a|
+        a.albums << Album.new(title: 'Maszyna do robienia dymu')
+        a.albums << Album.new(title: 'Maszyna do suszenia łez')
       end
 
       p artist.albums.map(&:title)

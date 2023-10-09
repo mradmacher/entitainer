@@ -43,7 +43,7 @@ artist = Artist.new(name: 'Czarny motyl')
 artist.defined_attributes
 # => [:name]
 artist.defined_attributes_with_values
-# => {:name=>\"Czarny motyl\"}
+# => {:name=>"Czarny motyl"}
 ```
 
 ## Belongs to relation
@@ -61,9 +61,9 @@ album.artist_id
 
 ## Has many relation
 ```
-artist = Artist.new(name: 'Czarny motyl') do |artist|
-  artist.albums << Album.new(title: 'Maszyna do robienia dymu')
-  artist.albums << Album.new(title: 'Maszyna do suszenia łez')
+artist = Artist.new(name: 'Czarny motyl') do |a|
+  a.albums << Album.new(title: 'Maszyna do robienia dymu')
+  a.albums << Album.new(title: 'Maszyna do suszenia łez')
 end
 
 artist.albums.map(&:title)

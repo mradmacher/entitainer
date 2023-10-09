@@ -19,6 +19,7 @@ module Entitainer
     base.extend(ClassMethods)
   end
 
+  # Methods for schema definition.
   module ClassMethods
     # A collection of all available attributes defined in a schema block,
     # <tt>id</tt> attribute, and <tt>_id</tt> sufixed attribute for each
@@ -69,9 +70,7 @@ module Entitainer
         @available_belongs_tos << attr
 
         relation_id_attr = "#{attr}_id".to_sym
-        unless @available_attributes.include?(relation_id_attr)
-          @available_attributes << relation_id_attr
-        end
+        @available_attributes << relation_id_attr unless @available_attributes.include?(relation_id_attr)
       end
     end
 
@@ -82,7 +81,7 @@ module Entitainer
     end
     # rubocop:enable Naming/PredicateName
 
-  private
+    private
 
     def add_id_attribute
       @available_attributes.prepend(:id) unless @available_attributes.include?(:id)

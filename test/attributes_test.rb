@@ -18,41 +18,42 @@ class TestAttributes < Minitest::Test
       attributes :first_name,
                  :last_name,
                  :email
-
     end
   end
 
   def test_id_is_added_even_for_empty_attribute_list
-    assert DummyUser.available_attributes.include?(:id)
+    assert_includes DummyUser.available_attributes, :id
   end
 
   def test_id_is_added_by_default_to_available_attributes
-    assert User.available_attributes.include?(:id)
+    assert_includes User.available_attributes, :id
   end
 
   def test_available_attributes
     assert_equal %i[id first_name last_name email], User.available_attributes
   end
 
-  def test_attributes_are_assigned_values_after_initialization
+  def test_defined_attributes_are_empty_when_nothing_passed_to_initialize
     user = User.new
 
     assert_predicate user.defined_attributes, :empty?
+  end
 
+  def test_attributes_are_assigned_values_after_initialization
     user = User.new(first_name: 'Joe', last_name: 'Doe')
 
     assert_equal %i[first_name last_name], user.defined_attributes
-    assert %i[first_name last_name], user.defined_attributes_with_values.keys
-    assert 'Joe', user.defined_attributes_with_values[:first_name]
-    assert 'Doe', user.defined_attributes_with_values[:last_name]
+    assert_equal %i[first_name last_name], user.defined_attributes_with_values.keys
+    assert_equal 'Joe', user.defined_attributes_with_values[:first_name]
+    assert_equal 'Doe', user.defined_attributes_with_values[:last_name]
+  end
 
-    user = User.new(id: 1, first_name: 'Joe', email: nil, last_name: 'Doe')
+  def test_nil_is_treated_as_attribute_value
+    user = User.new(id: 1, email: nil)
 
-    assert_equal %i[id first_name last_name email], user.defined_attributes
-    assert %i[id first_name last_name email], user.defined_attributes_with_values.keys
-    assert 1, user.defined_attributes_with_values[:id]
-    assert 'Joe', user.defined_attributes_with_values[:first_name]
-    assert 'Doe', user.defined_attributes_with_values[:last_name]
+    assert_equal %i[id email], user.defined_attributes
+    assert_equal %i[id email], user.defined_attributes_with_values.keys
+    assert_equal 1, user.defined_attributes_with_values[:id]
     assert_nil user.defined_attributes_with_values[:email]
   end
 
