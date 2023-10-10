@@ -2,15 +2,15 @@
 
 require 'optiomist'
 
-# Turns your class into a database entity.
+# Build database entities.
 # Define attributes and relation in a _schema_ block
 #   schema do
 #     attributes :attr1, :attr2, :attr3
 #     belongs_to :parent1, :parent2
-#     has_many :items
+#     has_many :items1, :items2
 #   end
 #
-# An _id_ attribute is always added automatically to the list.
+# An _id_ attribute is always added automatically to the attribute list.
 #
 # Also for <tt>belongs_to</tt> relation an attribute with the same name as
 # the relation and <tt>_id</tt> suffix is added to the attribute list.
@@ -36,6 +36,12 @@ module Entitainer
       @available_has_manys ||= []
     end
 
+    # Defines entity attributes and relations.
+    #   schema do
+    #     attributes # ...
+    #     belongs_to # ...
+    #     has_many # ...
+    #   end
     def schema
       @available_attributes = []
 
@@ -64,6 +70,7 @@ module Entitainer
       list.each { |attr| @available_attributes << attr }
     end
 
+    # Used in _schema_ block to define belongs-to type of relation.
     def belongs_to(*list)
       @available_belongs_tos = []
       list.each do |attr|
@@ -74,6 +81,7 @@ module Entitainer
       end
     end
 
+    # Used in _schema_ block to define has-many type of relation.
     # rubocop:disable Naming/PredicateName
     def has_many(*list)
       @available_has_manys = []
