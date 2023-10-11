@@ -43,6 +43,15 @@ class TestBelongsTo < Minitest::Test
     assert_equal artist, album.artist
   end
 
+  def test_only_related_id_can_be_added
+    artist = Artist.new(id: 1, name: 'The Big Star')
+    album = Album.new(title: 'Only Gratest Hits', artist_id: artist.id)
+
+    assert_equal %i[title artist_id], album.defined_attributes
+    assert_equal 1, album.artist_id
+    assert_nil album.artist
+  end
+
   def test_relation_can_be_added_in_constructor_block
     artist = Artist.new(id: 1, name: 'The Big Star')
     album = Album.new(title: 'Only Gratest Hits') do |a|

@@ -163,7 +163,7 @@ module Entitainer
         send("#{attr}=", args[attr])
       else
         instance_variable_set("@#{attr}", Optiomist.none)
-        instance_variable_set("@#{attr}_id", Optiomist.none)
+        instance_variable_set("@#{attr}_id", Optiomist.none) unless instance_variable_get("@#{attr}_id").some?
       end
     end
   end
